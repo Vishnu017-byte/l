@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-page">
+<section class="page-heading admin-header"><div><p class="eyebrow">Campus control room</p><h1>Admin overview</h1></div>
+<a class="btn" href="{{ url_for('export_reports') }}">Export reports <span aria-hidden="true">↓</span></a></section>
+<div class="stats admin-stats"><div><b>{{ stats.users }}</b> users</div><div><b>{{ stats['items'] }}</b> reports</div>
+<div><b>{{ stats.resolved }}</b> resolved</div><div><b>{{ stats.pending }}</b> pending claims</div></div>
+<section class="admin-section"><div class="section-heading"><p class="eyebrow">At a glance</p><h2>Reports &amp; activity</h2></div>
+<div class="grid admin-charts">
+	<section class="panel chart-panel"><h4>Items by category</h4><canvas id="category-chart" aria-label="Items by category" role="img"></canvas></section>
+	<section class="panel chart-panel"><h4>Items by location</h4><canvas id="location-chart" aria-label="Items by location" role="img"></canvas></section>
+	<section class="panel chart-panel"><h4>Open and resolved over time</h4><canvas id="status-chart" aria-label="Open and resolved items over the last 30 days" role="img"></canvas></section>
+</div></section>
+<section class="admin-section"><div class="section-heading"><p class="eyebrow">Needs a decision</p><h2>Pending claims</h2></div>
+{% for c in pending %}<p class="note"><a href="{{ url_for('item', item_id=c.item_id) }}">{{ c.name }} on "{{ c.title }}"</a>: {{ c.message }}</p>{% else %}<p class="empty">No pending claims.</p>{% endfor %}
+ </section><section class="admin-section"><div class="section-heading"><p class="eyebrow">Everything reported</p><h2>All reports</h2></div>
+<div class="scroll"><table><tr><th>Item</th><th>Type</th><th>Status</th><th>Posted by</th><th>Date</th><th>Actions</th></tr>
+{% for i in items %}<tr><td><a href="{{ url_for('item', item_id=i.id) }}">{{ i.title }}</a></td><td>{{ i.type }}</td><td>{{ i.status }}</td><td>{{ i.owner }}</td><td>{{ i.created_at }}</td><td><a href="{{ url_for('edit_item', item_id=i.id) }}">Edit</a> <form class="inline" method="post" action="{{ url_for('delete_item', item_id=i.id) }}" onsubmit="return confirm('Delete this report?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost">Delete</button></form></td></tr>{% endfor %}</table></div>
+ </section><section class="admin-section"><div class="section-heading"><p class="eyebrow">Account access</p><h2>Users</h2></div>
+<div class="scroll"><table><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr>
+{% for account in users %}<tr><td>{{ account.name }}</td><td>{{ account.email }}</td><td>{{ account.role }}</td><td>{{ 'Banned' if account.is_banned else 'Active' }}</td><td>{% if account.role != 'admin' %}<form method="post" action="{{ url_for('toggle_ban_user', user_id=account.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost">{{ 'Unban' if account.is_banned else 'Ban' }}</button></form>{% else %}Protected admin account{% endif %}</td></tr>{% endfor %}</table></div></section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+	const charts = {{ charts|tojson }};
+	if (window.Chart) {
+		const drawBar = (id, data, color) => new Chart(document.getElementById(id), {
+			type: 'bar', data: { labels: data.labels, datasets: [{ data: data.values, backgroundColor: color, borderRadius: 4 }] },
+			options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+		});
+		drawBar('category-chart', charts.categories, 'rgba(255,119,95,.78)');
+		drawBar('location-chart', charts.locations, 'rgba(91,140,242,.78)');
+		new Chart(document.getElementById('status-chart'), {
+			type: 'line', data: { labels: charts.timeline.labels, datasets: [
+				{ label: 'Open', data: charts.timeline.open, borderColor: '#ff775f', backgroundColor: 'rgba(255,119,95,.14)', tension: .3 },
+				{ label: 'Resolved', data: charts.timeline.resolved, borderColor: '#56c9b0', backgroundColor: 'rgba(86,201,176,.14)', tension: .3 }
+			] }, options: { responsive: true, maintainAspectRatio: false }
+		});
+	}
+</script>
+{% endblock %}

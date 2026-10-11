@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="dashboard-header page-heading">
+  <div>
+    <p class="eyebrow">Your account</p>
+    <h2>Dashboard</h2>
+  </div>
+  <a class="btn" href="{{ url_for('report') }}"><span aria-hidden="true">+</span> New report</a>
+</section>
+
+<div class="dashboard-summary">
+  <div class="summary-card">
+    <span>Total reports</span>
+    <strong>{{ mine|length }}</strong>
+  </div>
+  <div class="summary-card">
+    <span>Unread alerts</span>
+    <strong>{{ unread_count }}</strong>
+  </div>
+  <div class="summary-card">
+    <span>Quick action</span>
+    <strong><a href="{{ url_for('report') }}">Post item</a></strong>
+  </div>
+</div>
+
+<section class="panel content-section">
+  <div class="section-heading"><p class="eyebrow">A little update</p><h2>Notifications</h2></div>
+  {% for n in notes %}<p class="note">{% if n.item_id %}<a href="{{ url_for('item', item_id=n.item_id) }}">{{ n.message }}</a>{% else %}{{ n.message }}{% endif %} <span class="muted">{{ n.created_at }}</span></p>
+  {% else %}<p class="empty">Nothing yet. Matches and claim updates will show up here.</p>{% endfor %}
+</section>
+
+<section class="panel content-section">
+  <div class="section-heading"><p class="eyebrow">Your campus trail</p><h2>My reports</h2></div>
+  {% if mine %}<div class="grid">{% for i in mine %}{% include "_card.html" %}{% endfor %}</div>
+  {% else %}<p class="empty">You haven't posted anything. <a href="{{ url_for('report') }}">Report an item</a>.</p>{% endif %}
+</section>
+{% endblock %}

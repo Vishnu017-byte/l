@@ -1,0 +1,8 @@
+<a class="card {{ i.type }}" href="{{ url_for('item', item_id=i.id) }}">
+  {% if i.image %}<img src="{{ url_for('static', filename='uploads/' ~ i.image) }}" alt="">{% else %}<div class="noimg">No photo</div>{% endif %}
+  <div class="body">
+    <span class="tag {{ i.type }}">{{ i.type|capitalize }}</span>
+    <h3>{{ i.title }}</h3>
+    <p class="muted">{{ i.location }} · {{ i.date_event }}</p>
+  </div>
+</a>

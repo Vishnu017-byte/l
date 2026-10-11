@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ it.title }}{% endblock %}
+{% block content %}
+<article class="detail item-detail">
+  {% if it.image %}<img class="item-photo" src="{{ url_for('static', filename='uploads/' ~ it.image) }}" alt="{{ it.title }}">
+  {% else %}<div class="item-art" aria-hidden="true"><svg viewBox="0 0 280 240" xmlns="http://www.w3.org/2000/svg"><path d="M48 181c-12-50 18-117 70-135s121 15 128 75-37 103-96 108-92-7-102-48Z" fill="#f8d84e"/><path d="M91 84c0-21 17-38 38-38h22c21 0 38 17 38 38v85c0 16-13 29-29 29h-40c-16 0-29-13-29-29V84Z" fill="#56c9b0" stroke="#172521" stroke-width="6"/><path d="M116 78c0-20 10-32 25-32s25 12 25 32M107 113h67v40h-67z" fill="#fff8e9" stroke="#172521" stroke-width="5" stroke-linejoin="round"/><path d="m57 77 8-18 7 18 18 7-18 7-7 19-8-19-18-7 18-7Zm172 80 7-15 6 15 15 6-15 6-6 16-7-16-15-6 15-6Z" fill="#ff775f" stroke="#172521" stroke-width="3" stroke-linejoin="round"/><path d="M67 202c18 10 37 14 56 13m89-160 12-8m-4 20 14-2" fill="none" stroke="#172521" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 8"/></svg><span>Every clue helps</span></div>{% endif %}
+  <div class="detail-copy">
+    <span class="tag {{ it.type }}">{{ it.type|capitalize }}</span>
+    {% if it.status == 'resolved' %}<span class="tag done">Resolved</span>{% endif %}
+    {% if expired and it.status == 'open' %}<p class="flash warn">This report has expired and is hidden from the public list.</p>{% endif %}
+    <h1>{{ it.title }}</h1>
+    <p class="item-description">{{ it.description }}</p>
+    <dl class="item-facts"><dt>Category</dt><dd>{{ it.category }}</dd><dt>Place</dt><dd>{{ it.location }}</dd>
+        <dt>Date</dt><dd>{{ it.date_event }}</dd><dt>Posted by</dt><dd>{{ it.owner }}</dd></dl>
+    {% if is_mgr and it.status == 'open' %}
+    <div class="inline item-actions">
+      <a class="btn" href="{{ url_for('edit_item', item_id=it.id) }}">Edit report</a>
+      <form method="post" action="{{ url_for('resolve_item', item_id=it.id) }}" onsubmit="return confirm('Mark this report as resolved?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost">Mark as resolved</button></form>
+    </div>
+    {% endif %}
+    {% if is_mgr %}
+    <form class="item-actions" method="post" action="{{ url_for('delete_item', item_id=it.id) }}" onsubmit="return confirm('Remove this report?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn ghost">Remove report</button></form>
+    {% endif %}
+    {% if it.status == 'open' and user and user.id != it.user_id %}
+    <form method="post" action="{{ url_for('claim', item_id=it.id) }}" class="panel claim-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <h3>{{ 'I found this' if it.type == 'lost' else 'This is mine' }}</h3>
+      <textarea name="message" rows="3" required placeholder="{{ 'Where and when did you find it?' if it.type == 'lost' else 'Describe something only the owner would know.' }}"></textarea>
+      <button class="btn">Send claim</button>
+    </form>
+    {% elif it.status == 'open' and not user %}<p><a href="{{ url_for('login', next=request.path) }}">Log in</a> to claim this item.</p>{% endif %}
+  </div>
+</article>
+{% if is_mgr and claims %}
+<section class="item-section"><div class="section-heading"><p class="eyebrow">Community replies</p><h2>Claims</h2></div>
+{% for c in claims %}<div class="panel claim"><p><b>{{ c.name }}</b> <span class="tag {{ c.status }}">{{ c.status }}</span></p>
+  {% if c.status == 'approved' %}<p><strong>Approved contact:</strong> {{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</p>{% endif %}
+  <p>{{ c.message }}</p>
+  {% if c.status == 'pending' and it.status == 'open' %}<form method="post" class="inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" formaction="{{ url_for('decide_claim', claim_id=c.id, action='approve') }}">Approve</button>
+    <button class="btn ghost" formaction="{{ url_for('decide_claim', claim_id=c.id, action='reject') }}">Reject</button></form>{% endif %}</div>{% endfor %}
+</section>{% endif %}
+{% if matches %}<section class="item-section"><div class="section-heading"><p class="eyebrow">Worth a look</p><h2>Possible matches</h2></div><div class="grid">
+  {% for pct, i in matches %}<div>{% include "_card.html" %}<p class="muted">{{ pct }}% similar</p></div>{% endfor %}</div></section>{% endif %}
+{% endblock %}

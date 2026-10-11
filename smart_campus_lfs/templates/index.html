@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Campus Lost &amp; Found | Find campus items{% endblock %}
+{% block meta_description %}Report lost belongings, share found items, and browse campus reports to reunite items with their owners.{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">Campus item recovery</p>
+    <h1>Lost something?<br><span>Let’s get it</span><br>back.</h1>
+    <p>Report lost belongings, share found items, and help return campus property to its owner.</p>
+    <div class="hero-actions">
+      <a class="btn" href="{{ url_for('report') }}">Post a report <span aria-hidden="true">↗</span></a>
+      <a class="hero-link" href="#browse">Browse sightings <span aria-hidden="true">↓</span></a>
+    </div>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <span class="art-note art-note-top">FOUND ITEM</span>
+    <svg viewBox="0 0 520 390" role="presentation" xmlns="http://www.w3.org/2000/svg">
+      <path d="M267 28c92-19 197 35 211 120 17 99-47 203-151 216-103 13-225-35-231-131C90 137 165 48 267 28Z" fill="#f8d84e"/>
+      <path d="M118 308c39 27 94 39 143 35" fill="none" stroke="#172521" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 12"/>
+      <path d="m384 62 11-24 8 24 24 8-24 8-8 25-11-25-24-8 24-8Z" fill="#ff775f" stroke="#172521" stroke-width="4" stroke-linejoin="round"/>
+      <path d="m110 98 7-15 6 15 15 6-15 6-6 16-7-16-15-6 15-6Z" fill="#56c9b0" stroke="#172521" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M185 152c0-27 22-49 49-49h45c27 0 49 22 49 49v112c0 22-18 40-40 40h-63c-22 0-40-18-40-40V152Z" fill="#ff775f" stroke="#172521" stroke-width="7" stroke-linejoin="round"/>
+      <path d="M222 111c0-23 15-40 34-40s34 17 34 40" fill="none" stroke="#172521" stroke-width="8" stroke-linecap="round"/>
+      <path d="M209 190c0-12 10-22 22-22h52c12 0 22 10 22 22v46c0 12-10 22-22 22h-52c-12 0-22-10-22-22v-46Z" fill="#f8d84e" stroke="#172521" stroke-width="6"/>
+      <path d="M239 177v18c0 9 7 16 16 16s16-7 16-16v-18M241 218h28" fill="none" stroke="#172521" stroke-width="5" stroke-linecap="round"/>
+      <path d="M174 162c-19 18-27 43-23 67M339 163c17 17 24 40 20 61" fill="none" stroke="#172521" stroke-width="6" stroke-linecap="round"/>
+      <path d="m136 224 21-5 8 18-19 12-12-13 2-12Z" fill="#56c9b0" stroke="#172521" stroke-width="4" stroke-linejoin="round"/>
+      <circle cx="143" cy="231" r="3" fill="#172521"/>
+      <path d="M150 246c3 17 7 26 17 34" fill="none" stroke="#172521" stroke-width="4" stroke-linecap="round" stroke-dasharray="3 8"/>
+      <path d="m377 185 27-13 41 81-28 14-40-82Z" fill="#5b8cf2" stroke="#172521" stroke-width="6" stroke-linejoin="round"/>
+      <path d="m390 192 25-12M398 208l26-13M406 225l26-13" stroke="#fff8e9" stroke-width="5" stroke-linecap="round"/>
+      <path d="m409 275 10 13-9 12-16-3-6-14 10-10 11 2Z" fill="#fff8e9" stroke="#172521" stroke-width="4" stroke-linejoin="round"/>
+      <path d="m98 173-13-9m19 31-17 2m309 155 14 7m12-19 12 2" fill="none" stroke="#172521" stroke-width="4" stroke-linecap="round"/>
+      <path d="M263 318c28 6 54 0 74-17" fill="none" stroke="#172521" stroke-width="4" stroke-linecap="round" stroke-dasharray="3 10"/>
+    </svg>
+    <span class="art-note art-note-bottom">Back where it belongs</span>
+  </div>
+  <div class="stats">
+    <div><b>{{ stats.lost or 0 }}</b> items still lost</div>
+    <div><b>{{ stats.found or 0 }}</b> items waiting to be claimed</div>
+    <div><b>{{ stats.resolved or 0 }}</b> reunited</div>
+  </div>
+</section>
+<section id="browse" class="browse-section" aria-label="Browse campus reports">
+<div class="section-heading"><p class="eyebrow">The latest clues</p><h2>Recent sightings</h2></div>
+<form class="filters" method="get">
+  <input name="q" value="{{ q }}" placeholder="Search title, description or place">
+  <select name="type"><option value="">Lost &amp; found</option>
+    <option value="lost" {{ 'selected' if typ=='lost' }}>Lost</option><option value="found" {{ 'selected' if typ=='found' }}>Found</option></select>
+  <select name="category"><option value="">All categories</option>
+    {% for c in categories %}<option {{ 'selected' if c==cat }}>{{ c }}</option>{% endfor %}</select>
+  <select name="days"><option value="all" {{ 'selected' if days=='all' }}>Any time</option>
+    <option value="7" {{ 'selected' if days=='7' }}>Last 7 days</option>
+    <option value="30" {{ 'selected' if days=='30' }}>Last 30 days</option>
+    <option value="60" {{ 'selected' if days=='60' }}>Last 60 days</option></select>
+  <select name="sort"><option value="newest" {{ 'selected' if sort=='newest' }}>Newest first</option>
+    <option value="oldest" {{ 'selected' if sort=='oldest' }}>Oldest first</option></select>
+  <button class="btn">Apply</button>
+</form>
+{% if items %}<div class="grid">{% for i in items %}{% include "_card.html" %}{% endfor %}</div>
+{% if total_pages > 1 %}<nav class="pagination" aria-label="Pagination">
+  {% if page > 1 %}<a href="{{ url_for('index', page=page-1, **query_params) }}">Previous</a>{% endif %}
+  <span class="page-indicator">Page {{ page }} of {{ total_pages }}</span>
+  {% if page < total_pages %}<a href="{{ url_for('index', page=page+1, **query_params) }}">Next</a>{% endif %}
+</nav>{% endif %}
+{% else %}<p class="empty">No open reports match. Try fewer filters, or <a href="{{ url_for('report') }}">report an item</a>.</p>{% endif %}
+</section>
+{% endblock %}

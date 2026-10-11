@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<form class="panel narrow auth-panel" method="post" autocomplete="on">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="panel-header">
+    <p class="eyebrow">Campus access</p>
+    <h2>{{ 'Create your account' if mode == 'register' else 'Welcome back' }}</h2>
+  </div>
+  {% if mode == 'register' %}<label>Full name<input name="name" placeholder="Enter your full name" required autocomplete="name"></label>{% endif %}
+  <label class="email-field-label">{{ 'Email address' if mode == 'register' else 'Campus email' }}<input id="signup-email" type="email" name="email" placeholder="{{ 'name@' ~ college_email_domain if college_email_domain else 'you@example.com' }}" required autocomplete="email"></label>
+  {% if mode == 'register' %}<p class="email-hint">{% if college_email_domain %}Use an address ending in <strong>@{{ college_email_domain }}</strong>.{% else %}Use an email address you can access.{% endif %}</p>{% endif %}
+  {% if mode == 'register' %}<label>Phone (optional)<input type="tel" name="phone" placeholder="e.g. 555-0123" autocomplete="tel"></label>{% endif %}
+  <label>Password<input type="password" name="password" minlength="6" placeholder="At least 6 characters" required autocomplete="current-password"></label>
+  <button class="btn full-width">{{ 'Sign up' if mode == 'register' else 'Log in' }}</button>
+  {% if mode == 'login' %}<p class="muted text-right"><a href="{{ url_for('forgot_password') }}">Forgot password?</a></p>{% endif %}
+  <p class="muted auth-switch">{% if mode == 'register' %}Already registered? <a href="{{ url_for('login') }}">Log in</a>{% else %}New here? <a href="{{ url_for('register') }}">Sign up</a>{% endif %}</p>
+</form>
+{% endblock %}

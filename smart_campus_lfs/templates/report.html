@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<form class="panel report-form" method="post" enctype="multipart/form-data" aria-label="Item report form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="panel-header">
+    <p class="eyebrow">Help it find its way</p>
+    <h2>{{ 'Edit report' if mode == 'edit' else 'Report an item' }}</h2>
+    <p class="form-intro">A few useful details help the right person recognize it.</p>
+  </div>
+  <div class="row">
+    <label>This item was<select name="type">
+      <option value="lost" {{ 'selected' if item and item.type == 'lost' else '' }}>Lost by me</option>
+      <option value="found" {{ 'selected' if item and item.type == 'found' else '' }}>Found by me</option>
+    </select></label>
+    <label>Category<select name="category">{% for c in categories %}<option {{ 'selected' if item and c == item.category else '' }}>{{ c }}</option>{% endfor %}</select></label>
+  </div>
+  <label>Item name<input name="title" value="{{ item.title if item else '' }}" placeholder="e.g. Black Casio calculator" required></label>
+  <label>Description<textarea name="description" rows="4" placeholder="Colour, brand, marks, stickers. Leave out one detail only the owner would know." required>{{ item.description if item else '' }}</textarea></label>
+  <div class="row">
+    <label>Place<input id="report-location" name="location" value="{{ item.location if item else '' }}" placeholder="e.g. Library entrance, Block A, or anywhere on campus" required></label>
+    <label>Date<input type="date" name="date_event" max="{{ today }}" value="{{ item.date_event if item else today }}" required></label>
+  </div>
+  <label>Photo (optional, max 5 MB)<input type="file" name="image" accept="image/*"></label>
+  <button class="btn full-width">{{ 'Save changes' if mode == 'edit' else 'Post report' }}</button>
+</form>
+{% endblock %}
